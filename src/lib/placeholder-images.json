@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "photo-upload-placeholder",
+      "description": "Placeholder for recipe ingredient photo upload",
+      "imageUrl": "https://images.unsplash.com/photo-1608354580409-0ec9a4f8b163?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx2ZWdldGFibGVzJTIwY3V0dGluZyUyMGJvYXJkfGVufDB8fHx8MTc1OTY5MDIzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vegetables cutting board"
+    }
+  ]
 }
