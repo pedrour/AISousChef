@@ -2,10 +2,12 @@ import type { Recipe } from '@/app/actions';
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from './ui/separator';
+import { Salad, Soup } from 'lucide-react';
 
 interface RecipeDisplayProps {
   recipe: Recipe;
@@ -13,20 +15,24 @@ interface RecipeDisplayProps {
 
 export default function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   return (
-    <Card className="shadow-lg">
+    <Card>
       <CardHeader>
         <CardTitle className="font-headline text-3xl text-primary">
           {recipe.recipeName}
         </CardTitle>
+        <CardDescription>
+          Here's a delicious recipe based on what you have.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         <div>
-          <h3 className="font-headline text-xl font-semibold mb-3">
+          <h3 className="flex items-center gap-3 font-headline text-xl font-semibold mb-4">
+            <Salad className="text-accent-foreground" />
             Ingredients
           </h3>
-          <ul className="list-disc list-inside space-y-1 text-foreground/90 pl-2">
+          <ul className="list-disc list-inside space-y-2 text-foreground/80 pl-2">
             {recipe.ingredients.map((ingredient, index) => (
-              <li key={index} className="pl-1">
+              <li key={index} className="pl-2">
                 {ingredient.replace(/^- /, '')}
               </li>
             ))}
@@ -34,13 +40,17 @@ export default function RecipeDisplay({ recipe }: RecipeDisplayProps) {
         </div>
         <Separator />
         <div>
-          <h3 className="font-headline text-xl font-semibold mb-3">
+          <h3 className="flex items-center gap-3 font-headline text-xl font-semibold mb-4">
+            <Soup className="text-accent-foreground" />
             Instructions
           </h3>
-          <ol className="list-decimal list-inside space-y-3 text-foreground/90 pl-2">
+          <ol className="list-decimal list-inside space-y-4 text-foreground/80 pl-2">
             {recipe.instructions.map((instruction, index) => (
-              <li key={index} className="pl-1 leading-relaxed">
-                {instruction.replace(/^\d+\.\s*/, '')}
+              <li key={index} className="pl-2 leading-relaxed">
+                <span className="font-semibold">Step {index + 1}</span>
+                <p className="ml-1 inline">
+                  {instruction.replace(/^\d+\.\s*/, '')}
+                </p>
               </li>
             ))}
           </ol>

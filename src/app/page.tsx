@@ -10,6 +10,7 @@ import {
   Wand2,
   UtensilsCrossed,
   AlertTriangle,
+  Plus,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -145,19 +146,33 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
   };
+  
+  const resetState = () => {
+    setRecipe(null);
+    setError(null);
+    setImagePreview(null);
+    if(textInputRef.current) textInputRef.current.value = '';
+    if(fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-center gap-4 p-6 border-b">
-        <ChefHat className="w-8 h-8 text-primary" />
-        <h1 className="text-3xl font-bold tracking-tight font-headline">
-          AI Sous Chef
-        </h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 border-b">
+        <div className="flex items-center gap-3">
+          <ChefHat className="w-8 h-8 text-primary" />
+          <h1 className="text-xl font-bold tracking-tight font-headline">
+            AI Sous Chef
+          </h1>
+        </div>
+        <Button variant="ghost" size="icon" onClick={resetState} disabled={isLoading}>
+          <Plus className="w-5 h-5 rotate-45" />
+          <span className="sr-only">New Recipe</span>
+        </Button>
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          <Card className="shadow-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          <Card className="bg-card/50 lg:sticky lg:top-24">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">
                 What's in Your Kitchen?
@@ -176,37 +191,40 @@ export default function Home() {
                     <Camera className="mr-2" /> From Image
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="text" className="mt-4">
-                  <form onSubmit={handleTextSubmit}>
-                    <div className="grid w-full gap-2">
-                      <Textarea
-                        ref={textInputRef}
-                        placeholder="e.g., chicken breast, broccoli, garlic, olive oil"
-                        rows={4}
-                        disabled={isLoading}
-                      />
-                      <Button
+                <TabsContent value="text" className="mt-6">
+                  <form onSubmit={handleTextSubmit} className="space-y-4">
+                    <Textarea
+                      ref={textInputRef}
+                      placeholder="e.g., chicken breast, broccoli, garlic, olive oil"
+                      rows={5}
+                      disabled={isLoading}
+                      className="resize-none"
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2">
+                       <Button
                         type="submit"
                         disabled={isLoading}
                         className="w-full"
                       >
+                        <UtensilsCrossed />
                         Generate Recipe
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         onClick={handleRandomSubmit}
                         disabled={isLoading}
                         className="w-full"
                       >
-                        <Wand2 className="mr-2" /> Surprise Me!
+                        <Wand2 /> 
+                        Surprise Me!
                       </Button>
                     </div>
                   </form>
                 </TabsContent>
-                <TabsContent value="image" className="mt-4">
+                <TabsContent value="image" className="mt-6">
                   <div
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50"
                     onClick={() => fileInputRef.current?.click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -228,20 +246,24 @@ export default function Home() {
                         className="object-cover rounded-md max-h-64 w-auto"
                       />
                     ) : (
-                      <>
-                        <Image
-                          src={placeholderImage.imageUrl}
-                          alt={placeholderImage.description}
-                          data-ai-hint={placeholderImage.imageHint}
-                          width={400}
-                          height={300}
-                          className="object-cover rounded-md max-h-64 w-auto opacity-50"
-                        />
-                        <p className="mt-4 text-sm text-muted-foreground">
-                          Drop an image of your ingredients here, or click to
-                          browse.
+                      <div className="text-center">
+                         <div className="flex justify-center mb-4">
+                          <Image
+                            src={placeholderImage.imageUrl}
+                            alt={placeholderImage.description}
+                            data-ai-hint={placeholderImage.imageHint}
+                            width={120}
+                            height={90}
+                            className="object-cover rounded-md opacity-30"
+                          />
+                        </div>
+                        <p className="font-semibold">
+                          Drop an image or click to browse
                         </p>
-                      </>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Upload a picture of your ingredients
+                        </p>
+                      </div>
                     )}
                   </div>
                 </TabsContent>
@@ -249,10 +271,10 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <div className="sticky top-8">
+          <div className="lg:sticky lg:top-24">
             {isLoading && (
-              <Card className="flex flex-col items-center justify-center p-16 shadow-lg animate-pulse">
-                <Loader2 className="w-16 h-16 animate-spin text-primary" />
+              <Card className="flex flex-col items-center justify-center p-16 animate-pulse">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
                 <p className="mt-4 text-lg font-semibold">
                   Crafting your recipe...
                 </p>
@@ -260,15 +282,20 @@ export default function Home() {
             )}
 
             {!isLoading && error && (
-              <Card className="shadow-lg bg-destructive/10 border-destructive">
+              <Card className="bg-destructive/10 border-destructive">
                 <CardHeader className="flex-row items-center gap-4">
                   <AlertTriangle className="w-8 h-8 text-destructive" />
-                  <CardTitle className="text-destructive font-headline">
-                    Something went wrong
-                  </CardTitle>
+                  <div>
+                    <CardTitle className="text-destructive font-headline">
+                      Something went wrong
+                    </CardTitle>
+                    <CardDescription className="text-destructive/80">
+                      We couldn't generate a recipe.
+                    </CardDescription>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-destructive-foreground">{error}</p>
+                  <p className="text-sm text-destructive-foreground/90">{error}</p>
                 </CardContent>
               </Card>
             )}
@@ -280,13 +307,13 @@ export default function Home() {
             )}
 
             {!isLoading && !error && !recipe && (
-              <Card className="flex flex-col items-center justify-center p-16 shadow-lg text-center bg-accent/10 border-dashed">
-                <UtensilsCrossed className="w-16 h-16 text-accent" />
-                <h3 className="mt-4 text-xl font-semibold font-headline text-accent-foreground/90">
+              <Card className="flex flex-col items-center justify-center p-16 text-center border-dashed">
+                <UtensilsCrossed className="w-12 h-12 text-muted-foreground" />
+                <h3 className="mt-4 text-xl font-semibold font-headline">
                   Your Culinary Creation Awaits
                 </h3>
                 <p className="mt-2 text-muted-foreground">
-                  Your generated recipe will appear here once it's ready.
+                  Your generated recipe will appear here.
                 </p>
               </Card>
             )}
