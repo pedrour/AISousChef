@@ -13,6 +13,7 @@ import {
   Plus,
   Video,
   FileImage,
+  SwitchCamera,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -52,14 +53,24 @@ export default function Home() {
   const [imageMode, setImageMode] = useState<ImageMode>('file');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('user');
 
   const placeholderImage = PlaceHolderImages.find(
     (img) => img.id === 'photo-upload-placeholder'
   )!;
 
+  const password: string = "HardCodedPassWorD-WhatAreyouDoinghERe?";
+
+
   useEffect(() => {
-    if (imageMode === 'camera' && !stream) {
-      const getCameraPermission = async () => {
+    // Stop any existing stream
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+
+    if (imageMode === 'camera') {
+      const getCameraStream = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           toast({
             variant: 'destructive',
@@ -72,7 +83,9 @@ export default function Home() {
         }
 
         try {
-          const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: cameraFacingMode } 
+          });
           setStream(cameraStream);
           setHasCameraPermission(true);
 
@@ -92,7 +105,7 @@ export default function Home() {
         }
       };
 
-      getCameraPermission();
+      getCameraStream();
     } else if (imageMode === 'file' && stream) {
       // Cleanup camera stream when switching to file mode
       stream.getTracks().forEach((track) => track.stop());
@@ -107,7 +120,7 @@ export default function Home() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageMode]);
+  }, [imageMode, cameraFacingMode]);
 
 
   const handleAction = async (
@@ -226,6 +239,10 @@ export default function Home() {
     const dataUri = canvas.toDataURL('image/jpeg');
     setImagePreview(dataUri);
     handleAction(() => generateRecipeFromPhoto(dataUri));
+  };
+
+  const handleSwitchCamera = () => {
+    setCameraFacingMode(prevMode => prevMode === 'user' ? 'environment' : 'user');
   };
 
 
@@ -421,9 +438,20 @@ export default function Home() {
                           )}
                            <canvas ref={canvasRef} className="hidden" />
                         </div>
-                        <Button onClick={handleCapture} disabled={isLoading || !hasCameraPermission || imagePreview !== null} className="w-full">
-                          <Camera /> {imagePreview ? 'Re-take' : 'Capture Photo'}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button onClick={handleCapture} disabled={isLoading || !hasCameraPermission || imagePreview !== null} className="w-full">
+                            <Camera /> {imagePreview ? 'Re-take' : 'Capture Photo'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleSwitchCamera}
+                            disabled={isLoading || !hasCameraPermission || imagePreview !== null}
+                          >
+                            <SwitchCamera />
+                            <span className="sr-only">Switch Camera</span>
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
