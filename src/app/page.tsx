@@ -277,7 +277,7 @@ export default function Home() {
         <div className="absolute inset-0 z-20 flex items-center justify-between gap-4 p-4">
           <div className="flex items-center gap-3">
             <ChefHat className="w-8 h-8" />
-            <h1 className="text-xl font-bold tracking-tight font-headline">
+            <h1 className="text-3xl font-bold tracking-tight font-headline ml-4">
               AI Sous Chef
             </h1>
           </div>
