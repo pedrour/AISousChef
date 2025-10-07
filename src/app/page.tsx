@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent, useEffect } from 'react';
 import Image from 'next/image';
 import {
   ChefHat,
@@ -11,6 +11,8 @@ import {
   UtensilsCrossed,
   AlertTriangle,
   Plus,
+  Video,
+  FileImage,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,9 @@ import {
 import type { Recipe } from './actions';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import RecipeDisplay from '@/components/recipe-display';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+type ImageMode = 'file' | 'camera';
 
 export default function Home() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -40,11 +45,70 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+
+  const [imageMode, setImageMode] = useState<ImageMode>('file');
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   const placeholderImage = PlaceHolderImages.find(
     (img) => img.id === 'photo-upload-placeholder'
   )!;
+
+  useEffect(() => {
+    if (imageMode === 'camera' && !stream) {
+      const getCameraPermission = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          toast({
+            variant: 'destructive',
+            title: 'Camera not supported',
+            description: 'Your browser does not support camera access.',
+          });
+          setHasCameraPermission(false);
+          setImageMode('file'); // Fallback to file upload
+          return;
+        }
+
+        try {
+          const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setStream(cameraStream);
+          setHasCameraPermission(true);
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = cameraStream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description:
+              'Please enable camera permissions in your browser settings.',
+          });
+          setImageMode('file'); // Fallback to file upload
+        }
+      };
+
+      getCameraPermission();
+    } else if (imageMode === 'file' && stream) {
+      // Cleanup camera stream when switching to file mode
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+      if(videoRef.current) videoRef.current.srcObject = null;
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageMode]);
+
 
   const handleAction = async (
     action: () => Promise<{ recipe: Recipe | null; error: string | null }>
@@ -147,12 +211,39 @@ export default function Home() {
     e.stopPropagation();
   };
   
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    if(!context) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
+    const dataUri = canvas.toDataURL('image/jpeg');
+    setImagePreview(dataUri);
+    handleAction(() => generateRecipeFromPhoto(dataUri));
+  };
+
+
   const resetState = () => {
     setRecipe(null);
     setError(null);
     setImagePreview(null);
     if(textInputRef.current) textInputRef.current.value = '';
     if(fileInputRef.current) fileInputRef.current.value = '';
+    
+    // Stop camera stream on reset
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+      if(videoRef.current) videoRef.current.srcObject = null;
+    }
+    setImageMode('file');
+    setHasCameraPermission(null);
   }
 
   return (
@@ -223,46 +314,101 @@ export default function Home() {
                   </form>
                 </TabsContent>
                 <TabsContent value="image" className="mt-6">
-                  <div
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50"
-                    onClick={() => fileInputRef.current?.click()}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      accept="image/*"
-                      disabled={isLoading}
-                    />
-                    {imagePreview ? (
-                      <Image
-                        src={imagePreview}
-                        alt="Ingredients preview"
-                        width={400}
-                        height={300}
-                        className="object-cover rounded-md max-h-64 w-auto"
-                      />
-                    ) : (
-                      <div className="text-center">
-                         <div className="flex justify-center mb-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant={imageMode === 'file' ? 'default' : 'outline'}
+                        onClick={() => setImageMode('file')}
+                        disabled={isLoading}
+                      >
+                        <FileImage /> Upload File
+                      </Button>
+                      <Button
+                        variant={imageMode === 'camera' ? 'default' : 'outline'}
+                        onClick={() => setImageMode('camera')}
+                        disabled={isLoading}
+                      >
+                        <Video /> Use Camera
+                      </Button>
+                    </div>
+
+                    {imageMode === 'file' && (
+                      <div
+                        className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                      >
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          accept="image/*"
+                          disabled={isLoading}
+                        />
+                        {imagePreview ? (
                           <Image
-                            src={placeholderImage.imageUrl}
-                            alt={placeholderImage.description}
-                            data-ai-hint={placeholderImage.imageHint}
-                            width={120}
-                            height={90}
-                            className="object-cover rounded-md opacity-30"
+                            src={imagePreview}
+                            alt="Ingredients preview"
+                            width={400}
+                            height={300}
+                            className="object-cover rounded-md max-h-64 w-auto"
                           />
+                        ) : (
+                          <div className="text-center">
+                            <div className="flex justify-center mb-4">
+                              <Image
+                                src={placeholderImage.imageUrl}
+                                alt={placeholderImage.description}
+                                data-ai-hint={placeholderImage.imageHint}
+                                width={120}
+                                height={90}
+                                className="object-cover rounded-md opacity-30"
+                              />
+                            </div>
+                            <p className="font-semibold">
+                              Drop an image or click to browse
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              Upload a picture of your ingredients
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {imageMode === 'camera' && (
+                      <div className="space-y-4">
+                        <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden">
+                          {imagePreview ? (
+                             <Image
+                                src={imagePreview}
+                                alt="Captured ingredients"
+                                layout="fill"
+                                className="object-cover"
+                            />
+                          ) : (
+                            <>
+                            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            {hasCameraPermission === false && (
+                              <div className="absolute inset-0 flex items-center justify-center p-4">
+                                  <Alert variant="destructive">
+                                    <AlertTriangle/>
+                                    <AlertTitle>Camera Access Required</AlertTitle>
+                                    <AlertDescription>
+                                      Please allow camera access to use this feature.
+                                    </AlertDescription>
+                                  </Alert>
+                                </div>
+                              )}
+                            </>
+                          )}
+                           <canvas ref={canvasRef} className="hidden" />
                         </div>
-                        <p className="font-semibold">
-                          Drop an image or click to browse
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Upload a picture of your ingredients
-                        </p>
+                        <Button onClick={handleCapture} disabled={isLoading || !hasCameraPermission || imagePreview !== null} className="w-full">
+                          <Camera /> {imagePreview ? 'Re-take' : 'Capture Photo'}
+                        </Button>
                       </div>
                     )}
                   </div>
