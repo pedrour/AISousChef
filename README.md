@@ -2,7 +2,7 @@
 
 **AI Sous Chef** is a smart recipe generator build on Firebase Studio + Gemini CLI that helps you discover new dishes based on the ingredients you have on hand. Whether you provide a list of ingredients, snap a photo of them, or just want a random recipe, AI Sous Chef has you covered. Plus, it can even read the recipe out loud to you while you cook!
 
-
+You can try it out here: https://studio--studio-1695003782-7de95.us-central1.hosted.app/
 ## ✨ Features
 
 - **Generate Recipes from Text:** Simply type in the ingredients you have, and AI Sous Chef will create a custom recipe for you.
