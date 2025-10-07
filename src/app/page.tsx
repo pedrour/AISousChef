@@ -248,17 +248,32 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 border-b">
-        <div className="flex items-center gap-3">
-          <ChefHat className="w-8 h-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight font-headline">
-            AI Sous Chef
-          </h1>
+      <header className="relative h-52 w-full text-white">
+        <Image
+          src="/banner.png"
+          alt="Banner"
+          layout="fill"
+          objectFit="cover"
+          className="z-0"
+        />
+        <div className="absolute inset-0 bg-black/50 z-10" />
+        <div className="absolute inset-0 z-20 flex items-center justify-between gap-4 p-4">
+          <div className="flex items-center gap-3">
+            <ChefHat className="w-8 h-8" />
+            <h1 className="text-xl font-bold tracking-tight font-headline">
+              AI Sous Chef
+            </h1>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={resetState}
+            disabled={isLoading}
+          >
+            <Plus className="w-5 h-5 rotate-45" />
+            <span className="sr-only">New Recipe</span>
+          </Button>
         </div>
-        <Button variant="ghost" size="icon" onClick={resetState} disabled={isLoading}>
-          <Plus className="w-5 h-5 rotate-45" />
-          <span className="sr-only">New Recipe</span>
-        </Button>
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
