@@ -1,0 +1,37 @@
+# Prompt 1 (Firebase Studio): Creating app on Firebase Studio
+
+Create a web application named "AI Sous Chef" using a clean, modern cooking theme.
+
+The application must support two primary, separate inputs for recipe generation:
+1) Photo Input: Include a file input to "Upload and analyze Ingredients Photo" When the photo is uploaded and analyzed, the application must use the Gemini 2.5 Flash Image model to identify the ingredients shown in the image.
+2) Text Input: Include a text area labeled "Quick Ingredient List" and a button "Generate Recipe (Text)". This input is for manually entering ingredients or generating a random recipe.
+In the main output section, display the generated recipe with the following strict structure:
+Recipe Name (Headline)
+*A clear list of ingredients used.
+*Numbered, step-by-step instructions.
+The logic should prioritize generating a recipe that only uses the identified or 
+provided ingredients.
+
+# Prompt 2 (Firebase Studio): Enable Camera support
+Enable a new "Photo input” mode to use a mobile phone camera if available to take a picture directly from my mobile phone
+
+# Prompt 3 (Firebase Studio): Change themes and colors
+Change the app colors, use a dark, modern theme and modern fonts
+
+# Prompt 4 (Gemini CLI): Text to audio
+Add a new feature to my app to read aloud recipes via a "Read recipe" button that will translate the recipe text into audio I can play on my app. The "Read recipe" button should use the browser's voice to read the recipe, and you can press the "Stop" button to interrupt it at any time.     
+
+#(Gemini CLI Security Extension): 
+
+gemini extensions install https://github.com/gemini-cli-extensions/security
+
+/security:analyze
+
+# Prompt 5 (Gemini CLI Nano Banana): Add image banner using gemini nano banana
+A top-down, flat lay shot featuring three distinct culinary themes on a vertically segmented background. The left section, on a terracotta or peach background, displays fresh produce for Mexican cuisine, including avocados, limes, whole and halved tomatoes, bell peppers, red onion, cilantro, and a wooden cutting board with a small wooden bowl.
+The central section, on an olive green background, showcases ingredients and tools for Italian cooking: a block of Parmesan cheese, fresh basil, cherry tomatoes, olive oil in a bottle, dried tagliatelle pasta nests, a metal grater, a wooden spoon, and a whisk.
+The right section, on a deep blue-purple background, features ingredients and tools for Japanese sushi: two cuts of raw salmon, nori sheets, a bamboo rolling mat, chopsticks, wasabi, ginger, a cucumber, and cooked rice in a small bowl. The overall composition is clean, well-lit, and emphasizes the organized arrangement of ingredients for each cuisine.
+
+
+
+
